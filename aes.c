@@ -170,6 +170,14 @@ int main(int argc, char * argv[])
 	inputLength = length;
 	input = (unsigned char*) malloc(length*sizeof(unsigned char));
 
+	// for decryption, check if file size is divisible by 16
+	// if not, then the file is invalid
+	if ((strcmp(argv[5], "decrypt") == 0) && (inputLength % 16 != 0))
+	{
+		printf("\nTarget file for decrypting must have a size divisible by 16 bytes. Exiting now...\n");
+		return 1;
+	}
+
 	fseek(fp, 0, 0);
 	while (fscanf(fp, "%c", &c) != EOF)
 	{
@@ -177,6 +185,7 @@ int main(int argc, char * argv[])
 		++index;
 	}
 	fclose(fp);
+
 	printf("Done.\n");
 
 	// Parse key_file
@@ -299,13 +308,13 @@ int main(int argc, char * argv[])
 		// retrieve input values
 		for (i = 0; i < (inputLength % 16); ++i)
 		{
-			state[i/4][i%4] = input[16*stateLoops+i];
+			state[i%4][i/4] = input[16*stateLoops+i];
 		}
 
 		// pad the rest with 0's
 		for (i = (inputLength % 16); i < 16; ++i)
 		{
-			state[i/4][i%4] = 0;
+			state[i%4][i/4] = 0;
 		}
 
 		// encrypt
@@ -316,7 +325,7 @@ int main(int argc, char * argv[])
 		{
 			for (k = 0; k < 4; ++k)
 			{
-				output[16*i+4*k+j] = state[j][k];
+				output[16*stateLoops+4*k+j] = state[j][k];
 			}
 		}
 	}
@@ -325,9 +334,17 @@ int main(int argc, char * argv[])
 	//                        OUTPUT RESULTS                            //
 	//////////////////////////////////////////////////////////////////////
 
+	int paddedZeros = 0;
+	i = 16*stateLoops - 1;
+	while (output[i] == 0)
+	{
+		++paddedZeros;
+		--i;
+	}
+
 	// Dump file into output file
 	fp = fopen(argv[3], "wb");
-	for (i = 0; i < (16*stateRounds); ++i)
+	for (i = 0; i < (16*stateRounds - paddedZeros); ++i)
 	{
 		fprintf(fp, "%c", output[i]);
 	}
