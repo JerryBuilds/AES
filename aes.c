@@ -9,19 +9,8 @@ csrc.nist.gov/publications/fips/fips197/fips-197.pdf
 
 Extra Specifications to this program:
 
-Because AES is applied on 16 bytes at a time, there has to be a method
-of encryption and decryption that preserves the original file.
-
-Any leftover spaces will be filled in the following way:
-The indicator character will be the "tilde" or hexadecimal 7E.
-Given the remainder, if the remainder is 1, then the last character
-is filled with a tilde.
-If the remainder is greater than 1, all unfilled characters except the
-last spot is filled with tilde's. Then, the last character is filled
-with the number of empty spots.
-
-Due to the specification above, the size of decrypted files should
-divide exactly into 16 bytes.
+If a file's size does not divide into 16 bytes, 0's are padded at
+the end.
 
 */
 
@@ -307,21 +296,16 @@ int main(int argc, char * argv[])
 	// the algorithm is described at the very beginning
 	if (inputLength % 16 != 0)
 	{
+		// retrieve input values
 		for (i = 0; i < (inputLength % 16); ++i)
 		{
 			state[i/4][i%4] = input[16*stateLoops+i];
 		}
-		if ((16 - (inputLength % 16)) == 1)
+
+		// pad the rest with 0's
+		for (i = (inputLength % 16); i < 16; ++i)
 		{
-			state[3][3] = "~"; 
-		}
-		else
-		{
-			for (i = (inputLength % 16); i < 15; ++i)
-			{
-				state[i/4][i%4] = "~";
-			}
-			state[3][3] = (16 - (inputLength % 16));
+			state[i/4][i%4] = 0;
 		}
 
 		// encrypt
