@@ -334,6 +334,9 @@ int main(int argc, char * argv[])
 	//                        OUTPUT RESULTS                            //
 	//////////////////////////////////////////////////////////////////////
 
+	// when decrypting, do not print out the trailing zeros that were
+	// padded during the encryption process.
+	// this tracks the number of padded zeros.
 	int paddedZeros = 0;
 	i = 16*stateLoops - 1;
 	while (output[i] == 0)
@@ -358,7 +361,6 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-//void Cipher(unsigned char state[4][4], unsigned char keySchedule[][4][4], unsigned char Nk, unsigned char Nr)
 void Cipher(unsigned char state[4][4], unsigned char*** keySchedule, unsigned char Nk, unsigned char Nr)
 {
 	// Initial Round
